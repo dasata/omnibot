@@ -8,7 +8,8 @@
     "request": "^2.62.0",
     "deferred": "^0.7.3",
     "crypto": "^0.0.3",
-    "jshint": "^2.8.0"
+    "jshint": "^2.8.0",
+    "slackbotapi": "^1.3.4"
   },
   "devDependencies": {},
   "scripts": {

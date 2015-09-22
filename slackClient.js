@@ -1,10 +1,13 @@
+var config = require('./appConfig.json');
+var crypto = require('crypto');
 var request = require('request');
 var _ = require('underscore');
 var deferred = require('deferred');
+var SlackAPI = require('slackbotapi');
 
-module.exports = function(apiPath, token) {
+module.exports = function() {
 	var getUrl = function(apiMethod) {
-		return apiPath + apiMethod + '?token=' + token;
+		return config.api_root + apiMethod + '?token=' + config.token;
 	};
 	
 	var makeGetRequest = function(method) {
@@ -16,14 +19,32 @@ module.exports = function(apiPath, token) {
 		});
 		return def.promise();
 	};
+	
+	var getChecksum = function(data) {
+		return crypto
+				.createHash(config.checksum_algorithm)
+				.update(data)
+				.digest('hex');	
+	};
+	
+	var bot = new SlackAPI({
+		token: config.token,
+		logging: true,
+		autoReconnect: false
+	});
 			
 	var apiMethods = {
+		events: bot.events,
+		registerRtmCallback: function(event, callback) {
+			bot.on(event, callback);		
+		},
+		rtm: bot,
 		getUserList: function() {
 			return makeGetRequest('users.list');
 		},
 		authTest: function() {
 			return makeGetRequest('auth.test');
-		}, 
+		},
 		getUniqueGravatars: null,
 		getBadProfiles: null
 	};
@@ -52,7 +73,7 @@ module.exports = function(apiPath, token) {
 		return def.promise();
 	};
 	
-	apiMethods.getBadProfiles = function(checksumFunc, knownChecksums) {
+	apiMethods.getBadProfiles = function() {
 		var def = deferred();
 		
 		apiMethods.getUniqueGravatars()
@@ -63,8 +84,8 @@ module.exports = function(apiPath, token) {
 					var inner = deferred();
 					request.get(u.imageUrl, function(error, response, body) {
 						if (!error && response.statusCode === 200) {
-							var checksum = checksumFunc(body);
-							if (_.contains(knownChecksums, checksum)) {
+							var checksum = getChecksum(body);
+							if (_.contains(config.slack_gravatar_checksums, checksum)) {
 								inner.resolve(u);
 							} else {
 								inner.resolve(null);	
