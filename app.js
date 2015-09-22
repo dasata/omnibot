@@ -2,8 +2,6 @@ var config = require('./appConfig.json');
 var client = require('./slackClient');
 var _ = require('underscore');
 var crypto = require('crypto');
-var request = require('request');
-var deferred = require('deferred');
 
 var promptForInput = function(prompt, callback) {
 	var stdin = process.stdin,
@@ -37,7 +35,7 @@ var checksum = function(data) {
 			.digest('hex');	
 };
 
-var slack = client(config.protocol, config.hostname, config.api_root, config.token);
+var slack = client(config.api_root, config.token);
 var question = '\nWhich method would you like to call?\n';
 var keys = _.keys(slack).sort();
 

@@ -2,18 +2,9 @@ var request = require('request');
 var _ = require('underscore');
 var deferred = require('deferred');
 
-module.exports = function(protocol, hostname, apiPath, token) {
-	var getRequestOptions = function(path, method) {
-		return {
-			hostname: hostname,
-			port: 443,
-			path: '/' + apiPath + '/' + path,
-			method: method
-		};
-	};
-	
-	var getUrl = function(path) {
-		return protocol + '://' + hostname + '/' + apiPath + '/' + path + '?token=' + token;
+module.exports = function(apiPath, token) {
+	var getUrl = function(apiMethod) {
+		return apiPath + apiMethod + '?token=' + token;
 	};
 	
 	var makeGetRequest = function(method) {

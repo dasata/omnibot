@@ -1,8 +1,6 @@
 {
-	"token": "xoxp-3766825277-6871005776-10862261298-4c00de31cf",
-	"protocol": "https",
-	"hostname": "slack.com",
-	"api_root": "api",
+	"token": "xoxb-11116987410-4usNUXKoUNsGE5g5NtoEoyKH",
+	"api_root": "https://slack.com/api/",
 	"checksum_algorithm": "sha1",
 	"slack_gravatar_checksums": [
 		"e5c538bf041da250dfe7aa8abf808e13e98b318c",

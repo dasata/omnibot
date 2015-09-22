@@ -1,0 +1,19 @@
+{
+  "name": "cc-omnibot",
+  "version": "1.0.0",
+  "description": "a clearcompany slack bot",
+  "main": "app.js",
+  "dependencies": {
+    "underscore": "^1.8.3",
+    "request": "^2.62.0",
+    "deferred": "^0.7.3",
+    "crypto": "^0.0.3",
+    "jshint": "^2.8.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "derek shehata",
+  "license": "MIT"
+}
