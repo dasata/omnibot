@@ -96,9 +96,11 @@ module.exports = function() {
 					});
 					return inner.promise();
 				}))(function(results) {
-					for(var i = 0; i < results.length; i++) {
-						if (results[i] !== null) {
-							badProfiles.push(results[i]);
+					if (_.isArray(results)) {
+						for(var i = 0; i < results.length; i++) {
+							if (results[i] !== null) {
+								badProfiles.push(results[i]);
+							}
 						}
 					}
 					def.resolve(badProfiles);
