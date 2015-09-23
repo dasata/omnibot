@@ -47,7 +47,7 @@ module.exports = function() {
 				var toMe = (matches[1].indexOf(bot.slackData.self.id) >= 0);
 				return {
 					toMe: toMe,
-					text: (toMe) ? matches[2] : text
+					text: (toMe) ? matches[2].trim() : text
 				};
 			} else {
 				return {

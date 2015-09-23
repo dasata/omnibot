@@ -8,7 +8,7 @@ slack.registerRtmCallback(slack.events.message, function(data) {
 	if (msg.toMe) {
 		if (msg.text === 'quit') {
 			process.exit();
-		} else if (data.text === 'getBadProfiles') {
+		} else if (msg.text === 'getBadProfiles') {
 			slack.getBadProfiles()
 				.done(function(profiles) {
 					var msg;
