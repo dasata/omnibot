@@ -39,6 +39,23 @@ module.exports = function() {
 			bot.on(event, callback);		
 		},
 		rtm: bot,
+		parseMessage: function(text) {
+			var regex = new RegExp('^<(.*?)>:?\s?(.*)');
+			var matches = regex.exec(text);
+			
+			if (matches && matches.length > 0) {
+				var toMe = (matches[1].indexOf(bot.slackData.self.id) >= 0);
+				return {
+					toMe: toMe,
+					text: (toMe) ? matches[2] : text
+				};
+			} else {
+				return {
+					toMe: false,
+					text: text
+				};
+			}
+		},
 		getUserList: function() {
 			return makeGetRequest('users.list');
 		},
