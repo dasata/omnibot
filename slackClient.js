@@ -39,15 +39,19 @@ module.exports = function() {
 	};
 	
 	var commands = [
-		new RegExp('(joinChannel)' + commandArgs.optionalBuffer + commandArgs.channel),
-		new RegExp('(leaveChannel)' + commandArgs.optionalBuffer + commandArgs.channel),
-		new RegExp('(getBadProfiles)'),
-		new RegExp('(debugState)')
+		{ cmd: 'joinChannel', args: commandArgs.optionalBuffer + commandArgs.channel },
+		{ cmd: 'leaveChannel', args: commandArgs.optionalBuffer + commandArgs.channel },
+		{ cmd: 'getBadProfiles', args: null },
+		{ cmd: 'debugState', args: null }
 	];
 	
+	_.each(commands, function(c) {
+		c.regexp = new RegExp('(' + c.cmd + ')' + c.args);
+	});
+		
 	var parseTextForCommand = function(text) {
 		for (var i = 0; i < commands.length; i++) {
-			var matches = commands[i].exec(text);
+			var matches = commands[i].regexp.exec(text);
 			
 			if (matches && matches.length > 0) {
 				return {
