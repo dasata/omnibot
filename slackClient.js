@@ -32,6 +32,33 @@ module.exports = function() {
 		logging: true,
 		autoReconnect: false
 	});
+	
+	var commandArgs = {
+		channel: '<(#C\w+)(?:\|.*)>(.*)',
+		optionalBuffer: ':?\s*'
+	};
+	
+	var commands = [
+		new RegExp('(joinChannel)' + commandArgs.optionalBuffer + commandArgs.channel),
+		new RegExp('(leaveChannel)' + commandArgs.optionalBuffer + commandArgs.channel),
+		new RegExp('(getBadProfiles)'),
+		new RegExp('(debugState)')
+	];
+	
+	var parseTextForCommand = function(text) {
+		for (var i = 0; i < commands.length; i++) {
+			var matches = commands[i].exec(text);
+			
+			if (matches && matches.length > 0) {
+				return {
+					command: matches[1],
+					arguments: _.rest(matches, 2)
+				};
+			}
+		}
+		
+		return text;
+	};
 			
 	var apiMethods = {
 		events: bot.events,
@@ -39,22 +66,37 @@ module.exports = function() {
 			bot.on(event, callback);		
 		},
 		rtm: bot,
-		parseMessage: function(text) {
+		parseMessage: function(payload) {
 			var regex = new RegExp('^<(.*?)>:?\s?(.*)');
-			var matches = regex.exec(text);
+			var matches = regex.exec(payload.text);
+			var isIm = (bot.getIM(payload.user) !== null);
+			var parsedMsg = { 
+				isIm: isIm,
+				sentBy: bot.getUser(payload.user) 
+			};
 			
 			if (matches && matches.length > 0) {
-				var toMe = (matches[1].indexOf(bot.slackData.self.id) >= 0);
-				return {
-					toMe: toMe,
-					text: (toMe) ? matches[2].trim() : text
-				};
+				var toMe = (matches[1].indexOf(bot.slackData.self.id) >= 0) || isIm;
+				parsedMsg.toMe = toMe;
+				
+				if (toMe) {
+					var text = matches[2].trim();
+					var obj = parseTextForCommand(text);
+					
+					if (_.isObject(obj)) {
+						parsedMsg.cmd = obj;
+					} else {
+						parsedMsg.text = text;
+					}
+				} else {
+					parsedMsg.text = payload.text;
+				}
 			} else {
-				return {
-					toMe: false,
-					text: text
-				};
+				parsedMsg.toMe = isIm;
+				parsedMsg.text = payload.text;
 			}
+			
+			return parsedMsg;
 		},
 		getUserList: function() {
 			return makeGetRequest('users.list');
