@@ -7,6 +7,7 @@ slack.registerRtmCallback(slack.events.message, function(data) {
 	
 	if (msg.toMe) {
 		if (!_.isUndefined(msg.cmd)) {
+			//slack.rtm.sendTyping(data.channel);
 			if (msg.cmd.command === 'getBadProfiles') {
 				slack.rtm.sendMsg(data.channel, 'One moment, thinking...');
 				slack.getBadProfiles()
@@ -24,6 +25,8 @@ slack.registerRtmCallback(slack.events.message, function(data) {
 		
 						slack.rtm.sendMsg(data.channel, msg);
 					});
+			} else if (msg.cmd.command === 'help') {
+				slack.listCommands(data.channel);
 			} else if (msg.cmd.command === 'debugState') {
 				console.log(slack.rtm.slackData);
 			}

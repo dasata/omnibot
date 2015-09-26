@@ -39,10 +39,19 @@ module.exports = function() {
 	};
 	
 	var commands = [
-		{ cmd: 'joinChannel', args: commandArgs.optionalBuffer + commandArgs.channel },
-		{ cmd: 'leaveChannel', args: commandArgs.optionalBuffer + commandArgs.channel },
-		{ cmd: 'getBadProfiles', args: null },
-		{ cmd: 'debugState', args: null }
+		{ cmd: 'debugState', args: '' },
+		{ cmd: 'getBadProfiles', args: '' },
+		{ 
+			cmd: 'joinChannel', 
+			args: commandArgs.optionalBuffer + commandArgs.channel,
+			help: 'joinChannel &lt;#Channel&gt;' 
+		},
+		{ 
+			cmd: 'leaveChannel', 
+			args: commandArgs.optionalBuffer + commandArgs.channel,
+			help: 'leaveChannel &lt;#Channel&gt;'
+		},
+		{ cmd: 'help', args: '' }
 	];
 	
 	_.each(commands, function(c) {
@@ -73,18 +82,18 @@ module.exports = function() {
 		parseMessage: function(payload) {
 			var regex = new RegExp('^<(.*?)>:?\s?(.*)');
 			var matches = regex.exec(payload.text);
-			var isIm = (bot.getIM(payload.user) !== null);
+			var isIm = (bot.getIM(payload.channel) !== null);
 			var parsedMsg = { 
 				isIm: isIm,
 				sentBy: bot.getUser(payload.user) 
 			};
 			
-			if (matches && matches.length > 0) {
-				var toMe = (matches[1].indexOf(bot.slackData.self.id) >= 0) || isIm;
+			if (isIm || (matches && matches.length > 0)) {
+				var toMe = isIm || (matches[1].indexOf(bot.slackData.self.id) >= 0);
 				parsedMsg.toMe = toMe;
 				
 				if (toMe) {
-					var text = matches[2].trim();
+					var text = (matches) ? matches[2].trim() : payload.text;
 					var obj = parseTextForCommand(text);
 					
 					if (_.isObject(obj)) {
@@ -101,6 +110,19 @@ module.exports = function() {
 			}
 			
 			return parsedMsg;
+		},
+		listCommands: function(channel) {
+			var msg = 'Here\'s what I\'m listening for:';
+			_.each(commands, function(c, index) {
+				msg += '\n' + (index + 1) + ') ';
+				if (!_.isEmpty(c.help)) {
+					msg += c.help;
+				} else {
+					msg += c.cmd;
+				}
+			});
+			msg += '\nAnd of course, "quit"';
+			bot.sendMsg(channel, msg);
 		},
 		getUserList: function() {
 			return makeGetRequest('users.list');
