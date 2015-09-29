@@ -6,8 +6,8 @@ slack.registerRtmCallback(slack.events.message, function(data) {
 	var msg = slack.parseMessage(data);
 	
 	if (msg.toMe) {
-		if (!_.isUndefined(msg.cmd)) {
-			//slack.rtm.sendTyping(data.channel);
+		if (!_.isUndefined(msg.cmd) && msg.hasPermission) {
+			slack.rtm.sendTyping(data.channel);
 			if (msg.cmd.command === 'getBadProfiles') {
 				slack.rtm.sendMsg(data.channel, 'One moment, thinking...');
 				slack.getBadProfiles()
@@ -26,16 +26,14 @@ slack.registerRtmCallback(slack.events.message, function(data) {
 						slack.rtm.sendMsg(data.channel, msg);
 					});
 			} else if (msg.cmd.command === 'help') {
-				slack.listCommands(data.channel);
+				slack.listCommands(data.channel, msg.sentBy);
 			} else if (msg.cmd.command === 'debugState') {
 				console.log(slack.rtm.slackData);
+			} else if (msg.cmd.command === 'quit') {
+				slack.quit();
 			}
 		} else if (!_.isUndefined(msg.text)) {	
-			if (msg.text === 'quit') {
-				process.exit();
-			} else {
-				slack.rtm.sendMsg(data.channel, 'oh @' + slack.rtm.getUser(data.user).name + ', that\'s so funny.');
-			}
+			slack.rtm.sendMsg(data.channel, 'oh @' + slack.rtm.getUser(data.user).name + ', that\'s so funny.');
 		}
 	}
 });

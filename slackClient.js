@@ -33,25 +33,43 @@ module.exports = function() {
 		autoReconnect: false
 	});
 	
+	var permissions = {
+		admin: 1,
+		user: 2
+	};
+	
+	var everyonePermission = permissions.admin + permissions.user;
+	
+	var getPermissionsForUser = function(user) {
+		if (_.isObject(user) && user.id && !user.deleted) {
+			return (user.is_admin === true) ? permissions.admin : permissions.user;
+		} else {
+			return 0;
+		}
+	};
+	
 	var commandArgs = {
 		channel: '<(#C\w+)(?:\|.*)>(.*)',
 		optionalBuffer: ':?\s*'
 	};
 	
 	var commands = [
-		{ cmd: 'debugState', args: '' },
-		{ cmd: 'getBadProfiles', args: '' },
+		{ cmd: 'debugState', args: '', access: permissions.admin },
+		{ cmd: 'getBadProfiles', args: '', access: permissions.admin },
 		{ 
 			cmd: 'joinChannel', 
 			args: commandArgs.optionalBuffer + commandArgs.channel,
-			help: 'joinChannel &lt;#Channel&gt;' 
+			help: 'joinChannel &lt;#Channel&gt;',
+			access: permissions.admin
 		},
 		{ 
 			cmd: 'leaveChannel', 
 			args: commandArgs.optionalBuffer + commandArgs.channel,
-			help: 'leaveChannel &lt;#Channel&gt;'
+			help: 'leaveChannel &lt;#Channel&gt;',
+			access: permissions.admin
 		},
-		{ cmd: 'help', args: '' }
+		{ cmd: 'help', args: '', access: everyonePermission },
+		{ cmd: 'quit', args: '', access: permissions.admin }
 	];
 	
 	_.each(commands, function(c) {
@@ -65,7 +83,8 @@ module.exports = function() {
 			if (matches && matches.length > 0) {
 				return {
 					command: matches[1],
-					arguments: _.rest(matches, 2)
+					arguments: _.rest(matches, 2),
+					access: commands[i].access
 				};
 			}
 		}
@@ -84,8 +103,12 @@ module.exports = function() {
 			var matches = regex.exec(payload.text);
 			var isIm = (bot.getIM(payload.channel) !== null);
 			var parsedMsg = { 
+				cmd: null,
+				hasPermission: false,
 				isIm: isIm,
-				sentBy: bot.getUser(payload.user) 
+				sentBy: bot.getUser(payload.user),
+				text: null,
+				toMe: false
 			};
 			
 			if (isIm || (matches && matches.length > 0)) {
@@ -97,7 +120,9 @@ module.exports = function() {
 					var obj = parseTextForCommand(text);
 					
 					if (_.isObject(obj)) {
+						var p = getPermissionsForUser(parsedMsg.sentBy);
 						parsedMsg.cmd = obj;
+						parsedMsg.hasPermission = (obj.access & p) === p;
 					} else {
 						parsedMsg.text = text;
 					}
@@ -111,24 +136,33 @@ module.exports = function() {
 			
 			return parsedMsg;
 		},
-		listCommands: function(channel) {
+		listCommands: function(channel, requestedByUser) {
 			var msg = 'Here\'s what I\'m listening for:';
+			var userPerm = getPermissionsForUser(requestedByUser);
+			var count = 0;
 			_.each(commands, function(c, index) {
-				msg += '\n' + (index + 1) + ') ';
-				if (!_.isEmpty(c.help)) {
-					msg += c.help;
-				} else {
-					msg += c.cmd;
+				if ((c.access & userPerm) > 0) {
+					msg += '\n' + (++count) + ') ';
+					if (!_.isEmpty(c.help)) {
+						msg += c.help;
+					} else {
+						msg += c.cmd;
+					}
 				}
 			});
-			msg += '\nAnd of course, "quit"';
-			bot.sendMsg(channel, msg);
+			
+			if (count > 0) {
+				bot.sendMsg(channel, msg);
+			}
 		},
 		getUserList: function() {
 			return makeGetRequest('users.list');
 		},
 		authTest: function() {
 			return makeGetRequest('auth.test');
+		},
+		quit: function() { 
+			process.exit();	
 		},
 		getUniqueGravatars: null,
 		getBadProfiles: null
