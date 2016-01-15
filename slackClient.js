@@ -83,7 +83,7 @@ module.exports = function() {
             help: 'leaveChannel &lt;#Channel&gt;',
             access: permissions.admin
         },
-        { cmd: 'help', description: 'Displays the list of commands I am is listening for', args: '', access: everyonePermission },
+        { cmd: 'help', description: 'Displays the list of commands I am listening for', args: '', access: everyonePermission },
         { cmd: 'printDebugState', description: 'Prints debug information to the console I am running on', args: '', access: permissions.admin },
         { cmd: 'quit', description: 'Causes me to log off from Slack', args: '', access: permissions.admin }
     ];
@@ -175,6 +175,22 @@ module.exports = function() {
 
             if (count > 0) {
                 bot.sendMsg(channel, msg);
+            }
+        },
+        listJoinedChannels: function(channel) {
+            var msg = 'Here\'s the list of channels I\'m in:';
+            var count = 0;
+            _.each(bot.slackData.channels, function(c) {
+                if (c.is_member) {
+                    msg += '\n#' + c.name;
+                    count++;
+                }
+            });
+
+            if (count > 0) {
+                bot.sendMsg(channel, msg);
+            } else {
+                bot.sendMsg(channel, 'Doesn\'t look like I belong to any channels at the moment');
             }
         },
         getUserList: function() {

@@ -31,6 +31,8 @@ slack.registerRtmCallback(slack.events.message, function(data) {
                     .done(function(joke) {
                         slack.rtm.sendMsg(data.channel, joke);
                     });
+            } else if (msg.cmd.command === 'listChannels') {
+                slack.listJoinedChannels(data.channel);
             } else if (msg.cmd.command === 'help') {
                 slack.listCommands(data.channel, msg.sentBy);
             } else if (msg.cmd.command === 'debugState') {
