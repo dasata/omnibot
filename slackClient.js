@@ -67,8 +67,8 @@ module.exports = function() {
     };
 
     var commandArgs = {
-        channel: '<(#C\w+)(?:\|.*)?>(.*)',
-        optionalBuffer: ':?\s*'
+        channel: '<(#C\\w+)(?:\\|.*)?>(.*)',
+        optionalBuffer: ':?\\s*'
     };
 
     var commands = [
