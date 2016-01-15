@@ -24,7 +24,12 @@ slack.registerRtmCallback(slack.events.message, function(data) {
 	
 					slack.rtm.sendMsg(data.channel, msg);
 				});
-		} else {
+		} else if (msg.text === 'chuck norris') {
+            slack.getChuckJoke()
+                .done(function(joke) {
+                    slack.rtm.sendMsg(data.channel, joke);
+                });
+        } else {
 			slack.rtm.sendMsg(data.channel, 'oh @' + slack.rtm.getUser(data.user).name + ', that\'s so funny.');
 		}
 	}
