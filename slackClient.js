@@ -44,6 +44,66 @@ module.exports = function() {
 		logging: true,
 		autoReconnect: false
 	});
+	
+	var permissions = {
+		admin: 1,
+		user: 2
+	};
+	
+	var everyonePermission = permissions.admin + permissions.user;
+	
+	var getPermissionsForUser = function(user) {
+		if (_.isObject(user) && user.id && !user.deleted) {
+			return (user.is_admin === true) ? permissions.admin : permissions.user;
+		} else {
+			return 0;
+		}
+	};
+	
+	var commandArgs = {
+		channel: '<(#C\w+)(?:\|.*)>(.*)',
+		optionalBuffer: ':?\s*'
+	};
+	
+	var commands = [
+		{ cmd: 'debugState', args: '', access: permissions.admin },
+		{ cmd: 'getBadProfiles', args: '', access: permissions.admin },
+		{ 
+			cmd: 'joinChannel', 
+			args: commandArgs.optionalBuffer + commandArgs.channel,
+			help: 'joinChannel &lt;#Channel&gt;',
+			access: permissions.admin
+		},
+		{ 
+			cmd: 'leaveChannel', 
+			args: commandArgs.optionalBuffer + commandArgs.channel,
+			help: 'leaveChannel &lt;#Channel&gt;',
+			access: permissions.admin
+		},
+        { cmd: 'chuck norris', args: '', access: everyonePermission },
+		{ cmd: 'help', args: '', access: everyonePermission },
+		{ cmd: 'quit', args: '', access: permissions.admin }
+	];
+	
+	_.each(commands, function(c) {
+		c.regexp = new RegExp('(' + c.cmd + ')' + c.args);
+	});
+		
+	var parseTextForCommand = function(text) {
+		for (var i = 0; i < commands.length; i++) {
+			var matches = commands[i].regexp.exec(text);
+			
+			if (matches && matches.length > 0) {
+				return {
+					command: matches[1],
+					arguments: _.rest(matches, 2),
+					access: commands[i].access
+				};
+			}
+		}
+		
+		return text;
+	};
 			
 	var apiMethods = {
 		events: bot.events,
@@ -51,21 +111,61 @@ module.exports = function() {
 			bot.on(event, callback);		
 		},
 		rtm: bot,
-		parseMessage: function(text) {
+		parseMessage: function(payload) {
 			var regex = new RegExp('^<(.*?)>:?\s?(.*)');
-			var matches = regex.exec(text);
+			var matches = regex.exec(payload.text);
+			var isIm = (bot.getIM(payload.channel) !== null);
+			var parsedMsg = { 
+				cmd: null,
+				hasPermission: false,
+				isIm: isIm,
+				sentBy: bot.getUser(payload.user),
+				text: null,
+				toMe: false
+			};
 			
-			if (matches && matches.length > 0) {
-				var toMe = (matches[1].indexOf(bot.slackData.self.id) >= 0);
-				return {
-					toMe: toMe,
-					text: (toMe) ? matches[2].trim() : text
-				};
+			if (isIm || (matches && matches.length > 0)) {
+				var toMe = isIm || (matches[1].indexOf(bot.slackData.self.id) >= 0);
+				parsedMsg.toMe = toMe;
+				
+				if (toMe) {
+					var text = (matches) ? matches[2].trim() : payload.text;
+					var obj = parseTextForCommand(text);
+					
+					if (_.isObject(obj)) {
+						var p = getPermissionsForUser(parsedMsg.sentBy);
+						parsedMsg.cmd = obj;
+						parsedMsg.hasPermission = (obj.access & p) === p;
+					} else {
+						parsedMsg.text = text;
+					}
+				} else {
+					parsedMsg.text = payload.text;
+				}
 			} else {
-				return {
-					toMe: false,
-					text: text
-				};
+				parsedMsg.toMe = isIm;
+				parsedMsg.text = payload.text;
+			}
+			
+			return parsedMsg;
+		},
+		listCommands: function(channel, requestedByUser) {
+			var msg = 'Here\'s what I\'m listening for:';
+			var userPerm = getPermissionsForUser(requestedByUser);
+			var count = 0;
+			_.each(commands, function(c, index) {
+				if ((c.access & userPerm) > 0) {
+					msg += '\n' + (++count) + ') ';
+					if (!_.isEmpty(c.help)) {
+						msg += c.help;
+					} else {
+						msg += c.cmd;
+					}
+				}
+			});
+			
+			if (count > 0) {
+				bot.sendMsg(channel, msg);
 			}
 		},
 		getUserList: function() {
@@ -73,6 +173,9 @@ module.exports = function() {
 		},
 		authTest: function() {
 			return makeGetRequest({ method: 'auth.test'});
+		},
+		quit: function() { 
+			process.exit();	
 		},
 		getUniqueGravatars: null,
 		getBadProfiles: null,
