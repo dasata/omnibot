@@ -80,6 +80,7 @@ module.exports = function() {
 			help: 'leaveChannel &lt;#Channel&gt;',
 			access: permissions.admin
 		},
+        { cmd: 'chuck norris', args: '', access: everyonePermission },
 		{ cmd: 'help', args: '', access: everyonePermission },
 		{ cmd: 'quit', args: '', access: permissions.admin }
 	];

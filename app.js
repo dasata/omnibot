@@ -26,6 +26,7 @@ slack.registerRtmCallback(slack.events.message, function(data) {
 						slack.rtm.sendMsg(data.channel, msg);
 					});
 			} else if (msg.cmd.command === 'chuck norris') {
+                slack.rtm.sendMsg(data.channel, 'Consulting the archives...');
                 slack.getChuckJoke()
                     .done(function(joke) {
                         slack.rtm.sendMsg(data.channel, joke);
@@ -35,6 +36,7 @@ slack.registerRtmCallback(slack.events.message, function(data) {
 			} else if (msg.cmd.command === 'debugState') {
 				console.log(slack.rtm.slackData);
 			} else if (msg.cmd.command === 'quit') {
+                slack.rtm.sendMsg(data.channel, 'Signing off for now!');
 				slack.quit();
 			}
 		} else if (!_.isUndefined(msg.text)) {	
