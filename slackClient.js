@@ -15,6 +15,12 @@ module.exports = function() {
         var url = null;
         if (options.method) {
             url = getUrl(options.method);
+
+            if (!_.isEmpty(options.args) && _.isArray(options.args)) {
+                _.each(options.args, function (value, key) {
+                     url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+                });
+            }
         } else if (options.url) {
             url = options.url
         }
@@ -61,7 +67,7 @@ module.exports = function() {
     };
 
     var commandArgs = {
-        channel: '<(#C\w+)(?:\|.*)>(.*)',
+        channel: '<(#C\w+)(?:\|.*)?>(.*)',
         optionalBuffer: ':?\s*'
     };
 
@@ -198,6 +204,29 @@ module.exports = function() {
         },
         authTest: function() {
             return makeGetRequest({ method: 'auth.test'});
+        },
+        joinChannel: function(channelToJoin, channelRequestMadeFrom) {
+            var def = deferred();
+
+            makeGetRequest({ method: 'channel.join', args: { name: channelToJoin }})
+                .done(function(data) {
+                    if (data.ok) {
+                        if (!data.already_in_channel) {
+                            var index = _.findIndex(bot.slackData.channels, function (c) { return c.id === data.channel.id; });
+
+                            if (index > -1) {
+                                bot.slackData.channels[index] = data.channel;
+                            } else {
+                                bot.slackData.channels.push(data.channel);
+                            }
+                        }
+                        def.resolve();
+                    } else {
+                        def.reject();
+                    }
+                });
+
+            return def.promise();
         },
         quit: function() {
             process.exit();

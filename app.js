@@ -33,6 +33,13 @@ slack.registerRtmCallback(slack.events.message, function(data) {
                     });
             } else if (msg.cmd.command === 'listChannels') {
                 slack.listJoinedChannels(data.channel);
+            } else if (msg.cmd.command === 'joinChannel') {
+                slack.rtm.sendMsg(data.channel, 'I\'ll give it a shot');
+                var channelToJoin = msg.cmd.arguments[0];
+                slack.joinChannel(channelToJoin, data.channel)
+                    .done(function() {
+                        slack.rtm.sendMsg(data.channel, 'Ok, I\'ve joined #' + channelToJoin + '!');
+                    });
             } else if (msg.cmd.command === 'help') {
                 slack.listCommands(data.channel, msg.sentBy);
             } else if (msg.cmd.command === 'debugState') {
