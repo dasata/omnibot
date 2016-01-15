@@ -10,13 +10,25 @@ module.exports = function() {
 		return config.api_root + apiMethod + '?token=' + config.token;
 	};
 	
-	var makeGetRequest = function(method) {
+	var makeGetRequest = function(options) {
 		var def = deferred();
-		request.get(getUrl(method), function(error, response, body) {
-			if (!error && response.statusCode === 200) {
-				def.resolve(JSON.parse(body));
-			}
-		});
+        var url = null;
+        if (options.method) {
+            url = getUrl(options.method);
+        } else if (options.url) {
+            url = options.url
+        }
+        
+        if (url !== null) {
+            request.get(url, function(error, response, body) {
+                if (!error && response.statusCode === 200) {
+                    def.resolve(JSON.parse(body));
+                }
+            });
+        } else {
+            def.reject('No url or method was specified');
+        }
+        
 		return def.promise();
 	};
 	
@@ -156,16 +168,17 @@ module.exports = function() {
 			}
 		},
 		getUserList: function() {
-			return makeGetRequest('users.list');
+			return makeGetRequest({ method: 'users.list'});
 		},
 		authTest: function() {
-			return makeGetRequest('auth.test');
+			return makeGetRequest({ method: 'auth.test'});
 		},
 		quit: function() { 
 			process.exit();	
 		},
 		getUniqueGravatars: null,
-		getBadProfiles: null
+		getBadProfiles: null,
+        getChuckJoke: null
 	};
 	
 	apiMethods.getUniqueGravatars = function() {
@@ -228,6 +241,21 @@ module.exports = function() {
 		
 		return def.promise();
 	};
+    
+    apiMethods.getChuckJoke = function() {
+        var def = deferred();
+        
+        makeGetRequest({ url: config.chuck_norris_url })
+            .done(function(result) {
+                if (result.type === 'success') {
+                    def.resolve(result.value.joke);
+                } else {
+                    def.reject('Chuck Norris service returned result type ' + result.type);
+                }
+            });
+        
+        return def.promise();
+    };
 	
 	return apiMethods;
 };

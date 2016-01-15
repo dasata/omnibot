@@ -25,7 +25,12 @@ slack.registerRtmCallback(slack.events.message, function(data) {
 		
 						slack.rtm.sendMsg(data.channel, msg);
 					});
-			} else if (msg.cmd.command === 'help') {
+			} else if (msg.cmd.command === 'chuck norris') {
+                slack.getChuckJoke()
+                    .done(function(joke) {
+                        slack.rtm.sendMsg(data.channel, joke);
+                    });
+            } else if (msg.cmd.command === 'help') {
 				slack.listCommands(data.channel, msg.sentBy);
 			} else if (msg.cmd.command === 'debugState') {
 				console.log(slack.rtm.slackData);
