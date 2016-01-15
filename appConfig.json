@@ -1,10 +1,10 @@
 {
-	"token": "",
-	"api_root": "https://slack.com/api/",
-	"checksum_algorithm": "sha1",
+    "token": "",
+    "api_root": "https://slack.com/api/",
+    "checksum_algorithm": "sha1",
     "chuck_norris_url": "http://api.icndb.com/jokes/random?exclude=[explicit]",
-	"slack_gravatar_checksums": [
-		"e5c538bf041da250dfe7aa8abf808e13e98b318c",
-		"5e6b232afbea48ff3e419698a60f237368e87925"
-	]
+    "slack_gravatar_checksums": [
+        "e5c538bf041da250dfe7aa8abf808e13e98b318c",
+        "5e6b232afbea48ff3e419698a60f237368e87925"
+    ]
 }
