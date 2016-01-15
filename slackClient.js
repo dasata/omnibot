@@ -66,23 +66,26 @@ module.exports = function() {
     };
 
     var commands = [
-        { cmd: 'debugState', args: '', access: permissions.admin },
-        { cmd: 'getBadProfiles', args: '', access: permissions.admin },
+        { cmd: 'chuck norris', description: 'Tells a Chuck Norris Fact', args: '', access: everyonePermission },
+        { cmd: 'getBadProfiles', description: 'Lists users who have the default avatar', args: '', access: permissions.admin },
+        { cmd: 'listChannels', description: 'Lists the channels I belong to', args: '', access: permissions.admin },
         {
             cmd: 'joinChannel',
+            description: 'Tells me to join a channel',
             args: commandArgs.optionalBuffer + commandArgs.channel,
             help: 'joinChannel &lt;#Channel&gt;',
             access: permissions.admin
         },
         {
             cmd: 'leaveChannel',
+            description: 'Tells me to leave a channel',
             args: commandArgs.optionalBuffer + commandArgs.channel,
             help: 'leaveChannel &lt;#Channel&gt;',
             access: permissions.admin
         },
-        { cmd: 'chuck norris', args: '', access: everyonePermission },
-        { cmd: 'help', args: '', access: everyonePermission },
-        { cmd: 'quit', args: '', access: permissions.admin }
+        { cmd: 'help', description: 'Displays the list of commands I am listening for', args: '', access: everyonePermission },
+        { cmd: 'printDebugState', description: 'Prints debug information to the console I am running on', args: '', access: permissions.admin },
+        { cmd: 'quit', description: 'Causes me to log off from Slack', args: '', access: permissions.admin }
     ];
 
     _.each(commands, function(c) {
@@ -150,7 +153,7 @@ module.exports = function() {
             return parsedMsg;
         },
         listCommands: function(channel, requestedByUser) {
-            var msg = 'Here\'s what I\'m listening for:';
+            var msg = 'Here\'s the list of commands I\'m listening for:';
             var userPerm = getPermissionsForUser(requestedByUser);
             var count = 0;
             _.each(commands, function(c, index) {
@@ -161,11 +164,33 @@ module.exports = function() {
                     } else {
                         msg += c.cmd;
                     }
+
+                    if (!_.isEmpty(c.description)) {
+                        msg += ' - ' + c.description;
+                    }
+                }
+            });
+
+            msg += '\nTo use one of those commands just type my handle and the command';
+
+            if (count > 0) {
+                bot.sendMsg(channel, msg);
+            }
+        },
+        listJoinedChannels: function(channel) {
+            var msg = 'Here\'s the list of channels I\'m in:';
+            var count = 0;
+            _.each(bot.slackData.channels, function(c) {
+                if (c.is_member) {
+                    msg += '\n#' + c.name;
+                    count++;
                 }
             });
 
             if (count > 0) {
                 bot.sendMsg(channel, msg);
+            } else {
+                bot.sendMsg(channel, 'Doesn\'t look like I belong to any channels at the moment');
             }
         },
         getUserList: function() {
