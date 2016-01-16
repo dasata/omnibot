@@ -33,13 +33,6 @@ slack.registerRtmCallback(slack.events.message, function(data) {
                     });
             } else if (msg.cmd.command === 'listChannels') {
                 slack.listJoinedChannels(data.channel);
-            } else if (msg.cmd.command === 'joinChannel') {
-                slack.rtm.sendMsg(data.channel, 'I\'ll give it a shot');
-                var channelToJoin = msg.cmd.arguments[0];
-                slack.joinChannel(channelToJoin, data.channel)
-                    .done(function() {
-                        slack.rtm.sendMsg(data.channel, 'Ok, I\'ve joined #' + channelToJoin + '!');
-                    });
             } else if (msg.cmd.command === 'help') {
                 slack.listCommands(data.channel, msg.sentBy);
             } else if (msg.cmd.command === 'debugState') {
@@ -48,7 +41,7 @@ slack.registerRtmCallback(slack.events.message, function(data) {
                 slack.rtm.sendMsg(data.channel, 'Signing off for now!');
                 slack.quit();
             }
-        } else if (!_.isUndefined(msg.text)) {
+        } else if (!_.isUndefined(msg.text) && !msg.sentBy.is_bot && msg.sentBy.id !== 'USLACKBOT') {
             slack.rtm.sendMsg(data.channel, 'oh @' + slack.rtm.getUser(data.user).name + ', that\'s so funny.');
         }
     }
