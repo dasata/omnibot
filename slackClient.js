@@ -92,7 +92,7 @@ module.exports = function() {
 
     var commands = [
         { cmd: 'chuck norris', description: 'Tells a Chuck Norris Fact', args: '', access: everyonePermission },
-        { cmd: 'getBadProfiles', description: 'Lists users who have the default avatar', args: '', access: permissions.admin },
+        //{ cmd: 'getBadProfiles', description: 'Lists users who have the default avatar', args: '', access: permissions.admin },
         { cmd: 'listChannels', description: 'Lists the channels I belong to', args: '', access: permissions.admin },
         { cmd: 'help', description: 'Displays the list of commands I am listening for', args: '', access: everyonePermission },
         { cmd: 'printDebugState', description: 'Prints debug information to the console I am running on', args: '', access: permissions.admin },
@@ -279,17 +279,24 @@ module.exports = function() {
         return def.promise();
     };
 
+    var lastChuckNorrisTime = 0;
     apiMethods.getChuckJoke = function() {
         var def = deferred();
 
-        makeGetRequest({ url: config.chuck_norris_url })
-            .done(function(result) {
-                if (result.type === 'success') {
-                    def.resolve(result.value.joke);
-                } else {
-                    def.reject('Chuck Norris service returned result type ' + result.type);
-                }
-            });
+        if (Date.now() - lastChuckNorrisTime > config.chuck_norris_call_interval * 1000) {
+            lastChuckNorrisTime = Date.now();
+            makeGetRequest({ url: config.chuck_norris_url })
+                .done(function (result) {
+                    if (result.type === 'success') {
+                        def.resolve(result.value.joke);
+                    } else {
+                        def.reject('Looks like I ran into a problem. Chuck Norris service returned result type: ' + result.type);
+                    }
+                });
+        }
+        else {
+            def.reject('Sorry, I was asked about Chuck Norris too recently. Try again in a little bit.');
+        }
 
         return def.promise();
     };

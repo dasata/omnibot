@@ -28,8 +28,10 @@ slack.registerRtmCallback(slack.events.message, function(data) {
             } else if (msg.cmd.command === 'chuck norris') {
                 slack.rtm.sendMsg(data.channel, 'Consulting the archives...');
                 slack.getChuckJoke()
-                    .done(function(joke) {
+                    .done(function (joke) {
                         slack.rtm.sendMsg(data.channel, joke);
+                    }, function (error) {
+                        slack.rtm.sendMsg(data.channel, error);
                     });
             } else if (msg.cmd.command === 'listChannels') {
                 slack.listJoinedChannels(data.channel);
