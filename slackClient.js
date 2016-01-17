@@ -211,7 +211,7 @@ module.exports = function() {
             return makeGetRequest({ method: 'auth.test'});
         },
         quit: function() {
-            process.exit();
+            setTimeout(function() { process.exit(); }, 500);
         },
         getUniqueGravatars: null,
         getBadProfiles: null,
