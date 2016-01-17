@@ -41,7 +41,7 @@ slack.registerRtmCallback(slack.events.message, function(data) {
                 slack.rtm.sendMsg(data.channel, 'Signing off for now!');
                 slack.quit();
             }
-        } else if (!_.isUndefined(msg.text)) {
+        } else if (!_.isUndefined(msg.text) && !msg.sentBy.is_bot && msg.sentBy.id !== 'USLACKBOT') {
             slack.rtm.sendMsg(data.channel, 'oh @' + slack.rtm.getUser(data.user).name + ', that\'s so funny.');
         }
     }

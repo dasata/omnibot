@@ -15,6 +15,12 @@ module.exports = function() {
         var url = null;
         if (options.method) {
             url = getUrl(options.method);
+
+            if (!_.isEmpty(options.args) && _.isObject(options.args)) {
+                _.each(options.args, function (value, key) {
+                     url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+                });
+            }
         } else if (options.url) {
             url = options.url
         }
@@ -45,6 +51,25 @@ module.exports = function() {
         autoReconnect: false
     });
 
+    bot.on('channel_joined', function (data) {
+        var channel = data.channel;
+        var index = _.findIndex(bot.slackData.channels, function (c) { return c.id === channel.id; });
+        if (index > -1) {
+            bot.slackData.channels[index] = channel;
+        } else {
+            bot.slackData.channels.push(channel);
+        }
+    });
+
+    bot.on('channel_left', function (data) {
+        _.find(bot.slackData.channels, function (c) {
+            if (c.id == data.channel) {
+                c.is_member = false;
+                return true;
+            }
+        });
+    });
+
     var permissions = {
         admin: 1,
         user: 2
@@ -61,28 +86,14 @@ module.exports = function() {
     };
 
     var commandArgs = {
-        channel: '<(#C\w+)(?:\|.*)>(.*)',
-        optionalBuffer: ':?\s*'
+        channel: '<(#C\\w+)(?:\\|.*)?>(.*)',
+        optionalBuffer: ':?\\s*'
     };
 
     var commands = [
         { cmd: 'chuck norris', description: 'Tells a Chuck Norris Fact', args: '', access: everyonePermission },
         { cmd: 'getBadProfiles', description: 'Lists users who have the default avatar', args: '', access: permissions.admin },
         { cmd: 'listChannels', description: 'Lists the channels I belong to', args: '', access: permissions.admin },
-        {
-            cmd: 'joinChannel',
-            description: 'Tells me to join a channel',
-            args: commandArgs.optionalBuffer + commandArgs.channel,
-            help: 'joinChannel &lt;#Channel&gt;',
-            access: permissions.admin
-        },
-        {
-            cmd: 'leaveChannel',
-            description: 'Tells me to leave a channel',
-            args: commandArgs.optionalBuffer + commandArgs.channel,
-            help: 'leaveChannel &lt;#Channel&gt;',
-            access: permissions.admin
-        },
         { cmd: 'help', description: 'Displays the list of commands I am listening for', args: '', access: everyonePermission },
         { cmd: 'printDebugState', description: 'Prints debug information to the console I am running on', args: '', access: permissions.admin },
         { cmd: 'quit', description: 'Causes me to log off from Slack', args: '', access: permissions.admin }
