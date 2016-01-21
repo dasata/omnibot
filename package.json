@@ -9,7 +9,8 @@
     "deferred": "^0.7.3",
     "crypto": "^0.0.3",
     "jshint": "^2.8.0",
-    "slackbotapi": "^1.3.4"
+    "slackbotapi": "^1.3.4",
+    "html-entities": "^1.2.0"
   },
   "devDependencies": {},
   "scripts": {

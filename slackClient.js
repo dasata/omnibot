@@ -4,6 +4,7 @@ var request = require('request');
 var _ = require('underscore');
 var deferred = require('deferred');
 var SlackAPI = require('slackbotapi');
+var Entities = require('html-entities').AllHtmlEntities;
 
 module.exports = function() {
     var getUrl = function(apiMethod) {
@@ -288,7 +289,7 @@ module.exports = function() {
             makeGetRequest({ url: config.chuck_norris_url })
                 .done(function (result) {
                     if (result.type === 'success') {
-                        def.resolve(result.value.joke);
+                        def.resolve(new Entities().decode(result.value.joke));
                     } else {
                         def.reject('Looks like I ran into a problem. Chuck Norris service returned result type: ' + result.type);
                     }
